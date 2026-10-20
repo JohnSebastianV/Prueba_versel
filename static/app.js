@@ -22,9 +22,13 @@ async function pedir(url, opciones, salida) {
 }
 
 function dibujar(h, col) {
+  if (typeof Plotly === "undefined") {
+    mostrar("salida-subida", "Plotly no está cargado: revisa el <script> en el HTML.");
+    return;
+  }
   const x = h.conteos.map((_, i) => (h.bordes[i] + h.bordes[i + 1]) / 2);
   Plotly.newPlot("grafico", [{ x, y: h.conteos, type: "bar", marker: { color: "#0F766E" } }],
-    { title: "Histograma de " + col, margin: { t: 40 } });
+    { title: "Histograma de " + col, margin: { t: 40 }, yaxis: { rangemode: "tozero" } });
 }
 
 document.getElementById("btn-estado").onclick = () =>

@@ -56,11 +56,22 @@ def leer_archivo(nombre: str, contenido: bytes) -> pd.DataFrame:
     return a_numerico(df)
 
 
+def elegir_columna(df: pd.DataFrame) -> str:
+    """Elige la columna numerica a analizar, descartando contadores/IDs
+    (columnas enteras que nunca disminuyen, como 'muestra')."""
+    numericas = df.select_dtypes(include="number").columns.tolist()
+    candidatas = [
+        c for c in numericas
+        if not (pd.api.types.is_integer_dtype(df[c]) and df[c].is_monotonic_increasing)
+    ]
+    return (candidatas or numericas)[0]
+
+
 def analizar(df: pd.DataFrame) -> dict:
     numericas = df.select_dtypes(include="number").columns.tolist()
     if not numericas:
         raise HTTPException(400, "El archivo no tiene columnas numericas.")
-    col = numericas[0]
+    col = elegir_columna(df)
     s = df[col].dropna()
     if len(s) < 3:
         raise HTTPException(400, "Hay muy pocos datos para analizar.")
