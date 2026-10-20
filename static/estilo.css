@@ -1,0 +1,4 @@
+body { font-family: system-ui, sans-serif; max-width: 860px; margin: 24px auto; padding: 0 16px; color: #14213D; }
+section { border: 1px solid #D5DBE3; border-radius: 10px; padding: 16px; margin: 16px 0; }
+button { padding: 10px 16px; border-radius: 8px; border: 0; background: #0F766E; color: #fff; cursor: pointer; margin: 4px 4px 4px 0; }
+pre { background: #F4F6F8; padding: 12px; overflow-x: auto; border-radius: 8px; font-size: 13px; white-space: pre-wrap; }

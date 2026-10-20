@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>{{ titulo }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/estilo.css">
+  <script src="/static/plotly.min.js"></script>
+</head>
+<body>
+  <h1>{{ titulo }}</h1>
+  <p>Plantilla Jinja2 cargada correctamente.</p>
+
+  <section>
+    <h2>Prueba 1: estado del servidor</h2>
+    <button id="btn-estado">Consultar estado</button>
+    <pre id="salida-estado"></pre>
+  </section>
+
+  <section>
+    <h2>Prueba 2: subir archivo (.csv / .xlsx)</h2>
+    <input type="file" id="archivo" accept=".csv,.xlsx">
+    <button id="btn-subir">Analizar</button>
+    <pre id="salida-subida"></pre>
+  </section>
+
+  <section>
+    <h2>Prueba 3: datasets del repositorio</h2>
+    <button class="ej" data-n="ejemplo.csv">ejemplo.csv (coma)</button>
+    <button class="ej" data-n="ejemplo_puntoycoma.csv">ejemplo_puntoycoma.csv (;)</button>
+    <pre id="salida-ejemplo"></pre>
+  </section>
+
+  <section>
+    <h2>Prueba 4: grafico con Plotly</h2>
+    <div id="grafico" style="height:320px"></div>
+  </section>
+
+  <p id="marca-js">JavaScript estatico: NO cargado</p>
+  <script src="/static/app.js"></script>
+</body>
+</html>

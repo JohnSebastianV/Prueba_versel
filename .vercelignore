@@ -1,0 +1,6 @@
+tools/
+venv/
+.venv/
+__pycache__/
+*.xlsx
+grande_*.csv
