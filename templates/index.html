@@ -2,41 +2,208 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>{{ titulo }}</title>
+  <title>{{ titulo }} · Análisis estadístico de procesos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/static/estilo.css">
   <script src="/static/plotly.min.js"></script>
 </head>
 <body>
-  <h1>{{ titulo }}</h1>
-  <p>Plantilla Jinja2 cargada correctamente.</p>
+<header class="top">
+  <div class="marca">CalidadStat <span>· Análisis estadístico de procesos</span></div>
+    <nav id="tabs" role="tablist">
+    <button class="tab activa" data-tab="analisis" role="tab" aria-selected="true">Análisis de datos</button>
+    <button class="tab" data-tab="calidad" role="tab" aria-selected="false">Control de calidad</button>
+    <button class="tab" data-tab="marcas" role="tab" aria-selected="false">Comparación de marcas</button>
+    <button class="tab" data-tab="simulacion" role="tab" aria-selected="false">Simulación de equipos</button>
+    <button class="tab" data-tab="distribuciones" role="tab" aria-selected="false">Distribuciones</button>
+  </nav>
+</header>
 
-  <section>
-    <h2>Prueba 1: estado del servidor</h2>
-    <button id="btn-estado">Consultar estado</button>
-    <pre id="salida-estado"></pre>
-  </section>
+<main>
+  <!-- ============ TAB 1: ANÁLISIS DE DATOS ============ -->
+  <div id="tab-analisis" class="panel">
+    <div class="fila">
+      <section class="card col-carga">
+        <h2>1. Sube tus datos</h2>
+        <label id="zona" class="zona" for="archivo">
+          Arrastra aquí un archivo <b>.csv</b> o <b>.xlsx</b><br>o haz clic para elegirlo (máx. 4 MB)
+          <input type="file" id="archivo" accept=".csv,.xlsx,.xlsm,.txt" hidden>
+        </label>
+        <p class="peq">¿Sin archivo? Prueba con un ejemplo:</p>
+        <div id="ejemplos" class="ejemplos"></div>
+        <div id="msg-carga"></div>
+        <p class="peq">Formato: una fila por registro, una columna por variable y encabezados en la primera fila.</p>
+      </section>
 
-  <section>
-    <h2>Prueba 2: subir archivo (.csv / .xlsx)</h2>
-    <input type="file" id="archivo" accept=".csv,.xlsx">
-    <button id="btn-subir">Analizar</button>
-    <pre id="salida-subida"></pre>
-  </section>
+      <section class="card col-perfil" id="bloque-perfil" hidden>
+        <h2>Resumen del archivo</h2>
+        <p id="perfil-resumen"></p>
+        <div id="perfil-avisos"></div>
+        <div class="scroll"><table class="tabla" id="perfil-columnas"></table></div>
+        <h3>Vista previa</h3>
+        <div class="scroll"><table class="tabla" id="perfil-vista"></table></div>
+        <h3>Módulos disponibles para este archivo</h3>
+        <div id="perfil-modulos" class="chips"></div>
+      </section>
+    </div>
 
-  <section>
-    <h2>Prueba 3: datasets del repositorio</h2>
-    <button class="ej" data-n="ejemplo.csv">ejemplo.csv (coma)</button>
-    <button class="ej" data-n="ejemplo_puntoycoma.csv">ejemplo_puntoycoma.csv (;)</button>
-    <pre id="salida-ejemplo"></pre>
-  </section>
+    <section class="card" id="bloque-config" hidden>
+      <h2>2. Configura el análisis</h2>
+      <div class="form-grid">
+        <label>Columna a analizar (medición)<select id="columna"></select></label>
+        <label>Contexto del análisis
+          <select id="contexto">
+            <option value="general">General</option>
+            <option value="calidad">Control de calidad</option>
+            <option value="tiempos">Tiempos de servicio</option>
+          </select>
+        </label>
+        <label>Valor objetivo μ₀ (opcional, para prueba de hipótesis)<input id="objetivo" type="text" inputmode="decimal" placeholder="Ej. 500"></label>
+        <label>Comparar grupos por (opcional)<select id="grupo"></select></label>
+        <label>Regresión: variable X (opcional)<select id="reg-x"></select></label>
+        <label>Regresión: variable Y (opcional)<select id="reg-y"></select></label>
+      </div>
+      <button id="btn-analizar" class="btn">Analizar datos</button>
+    </section>
 
-  <section>
-    <h2>Prueba 4: grafico con Plotly</h2>
-    <div id="grafico" style="height:320px"></div>
-  </section>
+    <div id="resultados-analisis"></div>
+  </div>
 
-  <p id="marca-js">JavaScript estatico: NO cargado</p>
-  <script src="/static/app.js"></script>
+  <!-- ============ TAB 2: CONTROL DE CALIDAD ============ -->
+  <div id="tab-calidad" class="panel" hidden>
+    <div id="aviso-sin-archivo" class="aviso info">
+      Primero carga un archivo en la pestaña «Análisis de datos».
+      <button class="btn-link" data-ir="analisis">Ir a cargar datos</button>
+    </div>
+    <section class="card" id="bloque-calidad" hidden>
+      <h2>Parámetros de control de calidad</h2>
+      <div class="form-grid">
+        <label>Columna de medición<select id="q-columna"></select></label>
+        <label>Columna de orden / tiempo (opcional)<select id="q-orden"></select></label>
+        <label>Límite inferior de especificación (LSL)<input id="q-lsl" type="text" inputmode="decimal" placeholder="Ej. 495"></label>
+        <label>Límite superior de especificación (USL)<input id="q-usl" type="text" inputmode="decimal" placeholder="Ej. 505"></label>
+        <label>Valor objetivo (opcional)<input id="q-objetivo" type="text" inputmode="decimal" placeholder="Ej. 500"></label>
+        <label>Tipo de carta
+          <select id="q-subgrupo">
+            <option value="">Individuos (I-MR)</option>
+            <option value="2">X̄-R, subgrupos de 2</option><option value="3">X̄-R, subgrupos de 3</option>
+            <option value="4">X̄-R, subgrupos de 4</option><option value="5">X̄-R, subgrupos de 5</option>
+            <option value="6">X̄-R, subgrupos de 6</option><option value="7">X̄-R, subgrupos de 7</option>
+            <option value="8">X̄-R, subgrupos de 8</option><option value="9">X̄-R, subgrupos de 9</option>
+            <option value="10">X̄-R, subgrupos de 10</option>
+          </select>
+        </label>
+      </div>
+      <button id="btn-calidad" class="btn">Calcular</button>
+    </section>
+    <div id="resultados-calidad"></div>
+  </div>
+
+  <!-- ============ TAB 3: DISTRIBUCIONES ============ -->
+     <!-- ============ COMPARACIÓN DE MARCAS ============ -->
+  <div id="tab-marcas" class="panel" hidden>
+    <div id="m-sin-archivo" class="aviso info">
+      Primero carga tu base de datos en la pestaña «Análisis de datos».
+      <button class="btn-link" data-ir="analisis">Ir a cargar datos</button>
+    </div>
+    <section class="card" id="m-config" hidden>
+      <h2>Comparación de marcas (o grupos) y desempeño</h2>
+      <p class="peq">Compara varios grupos de un mismo producto: cajas y bigotes, cumplimiento de especificaciones, desempeño global, intervalos de confianza, comparación de variabilidad y prueba de una proporción. Todo se calcula con el archivo que cargaste; nada está fijo en el código.</p>
+      <div class="form-grid">
+        <label>Columna que identifica la marca / grupo<select id="m-grupo"></select></label>
+        <label>Nivel de confianza
+          <select id="m-conf"><option value="0.90">90 %</option><option value="0.95" selected>95 %</option><option value="0.99">99 %</option></select>
+        </label>
+      </div>
+      <h3>Variable donde «menor es mejor» (p. ej. emisiones)</h3>
+      <div class="form-grid">
+        <label>Variable<select id="m-var-menor"></select></label>
+        <label>Límite máximo aceptable (opcional)<input id="m-lim" type="text" inputmode="decimal" placeholder="Ej. 400"></label>
+        <label>Segundo límite, p. ej. norma legal (opcional)<input id="m-lim2" type="text" inputmode="decimal" placeholder="Ej. 1000"></label>
+      </div>
+      <h3>Variable con especificación bilateral (p. ej. potencia)</h3>
+      <div class="form-grid">
+        <label>Variable<select id="m-var-bil"></select></label>
+        <label>Valor objetivo<input id="m-obj" type="text" inputmode="decimal" placeholder="Ej. 2,7"></label>
+        <label>Tolerancia (±)<input id="m-tol" type="text" inputmode="decimal" placeholder="Ej. 0,22"></label>
+      </div>
+      <h3>Otras variables para el desempeño global (opcional)</h3>
+      <div id="m-extras"></div>
+      <h3>Comparaciones específicas</h3>
+      <div class="form-grid">
+        <label>Grupo a analizar en d) y f)<select id="m-sel"></select></label>
+        <label>Comparar variabilidad: grupo 1<select id="m-g1"></select></label>
+        <label>Comparar variabilidad: grupo 2<select id="m-g2"></select></label>
+        <label>Proporción afirmada p₀ (0 a 1)<input id="m-p0" type="text" inputmode="decimal" value="0.8"></label>
+        <label>Hipótesis alternativa
+          <select id="m-alt"><option value="distinto">p ≠ p₀ (distinta)</option><option value="menor">p &lt; p₀ (menor)</option><option value="mayor">p &gt; p₀ (mayor)</option></select>
+        </label>
+      </div>
+      <button id="btn-marcas" class="btn">Analizar</button>
+      <button id="btn-preset" class="btn sec" type="button">Rellenar con los valores del enunciado (hornos)</button>
+    </section>
+    <div id="m-resultados"></div>
+  </div>
+
+  <!-- ============ SIMULACIÓN DE EQUIPOS ============ -->
+  <div id="tab-simulacion" class="panel" hidden>
+    <section class="card">
+      <h2>Simulación: comparación de dos equipos</h2>
+      <p class="peq">Genera datos aleatorios para dos equipos (A y B) en cada escenario, y calcula descriptivas, bondad de ajuste, comparación de medias (t y Normal) y Mann-Whitney. No necesitas cargar archivo.</p>
+      <div class="form-grid">
+        <label>Tamaño de muestra por equipo<input id="sim-n" type="number" min="10" max="2000" value="60"></label>
+        <label>Semilla (opcional, para repetir resultados)<input id="sim-semilla" type="number" placeholder="Vacía = aleatoria"></label>
+      </div>
+      <div id="sim-form"></div>
+      <p class="peq">En la Gamma, β se usa como parámetro de <b>escala</b> (media = α·β). Revisa que coincida con la convención de tu curso.</p>
+      <button id="btn-sim" class="btn">Generar y analizar</button>
+      <button id="btn-sim-csv" class="btn sec" hidden>Descargar datos (.csv)</button>
+    </section>
+    <details class="card">
+      <summary>¿En qué consiste la prueba de Mann-Whitney?</summary>
+      <p>Es una alternativa no paramétrica a la prueba t para dos muestras independientes. En lugar de comparar medias, junta todos los datos, los ordena y reemplaza cada valor por su puesto (rango); luego compara la suma de rangos de cada grupo. Si ambos provienen de la misma distribución, los rangos se reparten parejo.</p>
+      <p>El estadístico U cuenta, entre todos los pares (dato de A, dato de B), en cuántos el de A es mayor. H₀: la probabilidad de que A supere a B es 0,5 (misma distribución); H₁: no lo es. No exige normalidad y resiste mejor valores extremos, pero responde a diferencias de posición <i>y de forma</i>, no solo de medias. También se conoce como Wilcoxon de suma de rangos.</p>
+    </details>
+    <div id="sim-resultados"></div>
+  </div>
+  <div id="tab-distribuciones" class="panel" hidden>
+    <div class="fila">
+      <section class="card col-carga">
+        <h2>Calculadora de probabilidades</h2>
+        <label>Distribución<select id="dist"></select></label>
+        <p class="peq" id="nota-dist"></p>
+        <div id="params" class="form-col"></div>
+        <label>Qué calcular
+          <select id="modo">
+            <option value="menor">P(X ≤ x) — probabilidad acumulada</option>
+            <option value="mayor">P(X &gt; x) — cola derecha</option>
+            <option value="entre">P(a ≤ X ≤ b) — entre dos valores</option>
+            <option value="igual">P(X = x) — solo discretas</option>
+            <option value="percentil">Percentil: hallar x dada una probabilidad</option>
+          </select>
+        </label>
+        <label class="campo-x">Valor x<input id="dist-x" type="number" step="any" value="0"></label>
+        <label class="campo-ab" hidden>Valor a<input id="dist-a" type="number" step="any" value="-1"></label>
+        <label class="campo-ab" hidden>Valor b<input id="dist-b" type="number" step="any" value="1"></label>
+        <label class="campo-prob" hidden>Probabilidad (0 a 1)<input id="dist-prob" type="number" step="any" value="0.95"></label>
+        <button id="btn-dist" class="btn">Calcular</button>
+
+        <h3>Distribución muestral de la media</h3>
+        <p class="peq">Simula muchas muestras con los parámetros de arriba y muestra cómo se distribuye su media (Teorema Central del Límite).</p>
+        <label>Tamaño de cada muestra (n)<input id="m-n" type="number" min="1" max="500" value="30"></label>
+        <label>Número de muestras<input id="m-rep" type="number" min="100" max="5000" value="2000"></label>
+        <button id="btn-muestral" class="btn sec">Simular</button>
+      </section>
+      <div class="col-perfil">
+        <div id="res-dist"></div>
+        <div id="res-muestral"></div>
+      </div>
+    </div>
+  </div>
+</main>
+<footer class="pie">Proyecto de Estadística · FastAPI + pandas + SciPy + Plotly</footer>
+<script src="/static/app.js"></script>
+<script src="/static/marcas.js"></script>
+<script src="/static/simulacion.js"></script>
 </body>
 </html>
